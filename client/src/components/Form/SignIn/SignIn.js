@@ -1,15 +1,17 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import {Link, Redirect} from 'react-router-dom';
 import axios from 'axios';
 import Form from '../form';
 import '../form.css';
 
 class SignIn extends React.Component{
     constructor(props){
-        super(props);
+        super(props);  
         this.state={
             email: '',
-            password: ''
+            password: '',
+            token: '',
+            redirect: localStorage.getItem('userTokenTime') ? true : false
         }
         
         this.onSubmitHandler=this.onSubmitHandler.bind(this);
@@ -26,8 +28,21 @@ class SignIn extends React.Component{
                password: this.state.password
            })
            .then(res=>{
-               console.log(res);
-           })
+               //console.log(res);
+               this.setState({
+                   token: res.data.token
+               });
+               const data={
+                   token: this.state.token,
+                   time: new Date().getTime()
+               }
+               
+        localStorage.setItem('userTokenTime' , JSON.stringify(data));
+            
+        this.setState({
+            redirect: true
+        });
+            }) 
            .catch(err=>{
                console.log(err);
            });
@@ -49,10 +64,12 @@ class SignIn extends React.Component{
         this.setState({
             password: event.target.value
         });
-        console.log("password entered");
+        
     }
 
     render(){
+        if (this.state.redirect) 
+            return <Redirect to="/"/>
         return(
             <Form
                 onSubmit={this.onSubmitHandler.bind(this)}>
@@ -84,6 +101,8 @@ class SignIn extends React.Component{
                         <Link to="/signUp" className="text-info">Sign Up Here</Link>
                     </div>
                 </Form>
+           
+            
         );
 }
 }
